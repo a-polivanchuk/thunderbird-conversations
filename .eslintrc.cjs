@@ -64,7 +64,7 @@ module.exports = {
       env: {
         jest: true,
       },
-      files: "addon/tests/*.test.js*",
+      files: ["addon/tests/*.test.js*", "addon/tests/*.test.mjs*"],
     },
   ],
   // Override mozilla/recommended to get private class fields
@@ -98,8 +98,6 @@ module.exports = {
         vars: "all",
       },
     ],
-    // Add prettier separately.
-    "prettier/prettier": "off",
   },
   settings: {
     react: {
