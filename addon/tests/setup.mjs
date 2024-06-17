@@ -4,14 +4,24 @@
 
 /* eslint-env node */
 
-import { browser } from "../content/esmodules/thunderbirdCompat.js";
+// Imported for side-effects
+// eslint-disable-next-line import/no-unassigned-import, import/no-unresolved
+import "global-jsdom/register";
+import { browser } from "../content/esmodules/thunderbirdCompat.mjs";
 import fileSystem from "fs";
 import path from "path";
+import url from "url";
+import { afterEach } from "node:test";
+import { cleanup } from "@testing-library/react";
 
 // Mock `fetch`, which is used to get localization info when running in the browser
-globalThis.fetch = function (url) {
-  const ROOT_PATH = path.join(__dirname, "..", "addon");
-  const filePath = path.join(ROOT_PATH, url);
+globalThis.fetch = function (fetchUrl) {
+  const ROOT_PATH = path.join(
+    path.dirname(url.fileURLToPath(import.meta.url)),
+    "..",
+    "addon"
+  );
+  const filePath = path.join(ROOT_PATH, fetchUrl);
 
   const data = fileSystem.readFileSync(filePath, "utf8");
   return Promise.resolve({
@@ -24,3 +34,7 @@ globalThis.fetch = function (url) {
 browser.i18n.initialize();
 
 globalThis.browser = browser;
+
+afterEach(() => {
+  cleanup();
+});

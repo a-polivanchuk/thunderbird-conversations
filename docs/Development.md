@@ -58,8 +58,8 @@ files that change.
 ### Missing Thunderbird APIs
 
 The browser lacks some of Thunderbird's APIs. These are mocked in
-`addon/content/esmodules/thunderbirdCompat.js`. All components may import
-from `thunderbirdCompat.js`, which will use native APIs if available, otherwise
+`addon/content/esmodules/thunderbirdCompat.mjs`. All components may import
+from `thunderbirdCompat.mjs`, which will use native APIs if available, otherwise
 fall back to mocked APIs.
 
 ### Module Importing
@@ -68,16 +68,16 @@ fall back to mocked APIs.
 
 ## Testing
 
-`thunderbird-conversations` has linting tests and [jest](https://jestjs.io) tests. To run all tests, do
+`thunderbird-conversations` has linting tests and [node](https://nodejs.org/api/test.html) tests. To run all tests, do
 
 ```
 $ npm test
 ```
 
-To run just the _jest_ tests, do
+To run just the _node_ tests, do
 
 ```
-$ npm run test:jest
+$ npm run test:node
 ```
 
 Tests are stored in `test` directories. Because native ESM modules are used while

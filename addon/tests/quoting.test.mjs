@@ -2,12 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 // Prettier is used to normalize the html formatting so we can reliably use it to compare HTML with
 // text diffing.
-import { default as prettier } from "prettier";
+import prettier from "prettier";
+import html from "prettier/plugins/html";
 
 // Import the components we want to test
-import { Quoting } from "../content/utils/quoting.js";
+import { Quoting } from "../content/utils/quoting.mjs";
 
 const samples = {
   hotmail: [
@@ -204,46 +208,60 @@ const samples = {
   ],
 };
 
-const PRETTIER_OPTS = { parser: "html", tabWidth: 0, printWidth: 120 };
+const PRETTIER_OPTS = {
+  parser: "html",
+  plugins: [html],
+  tabWidth: 0,
+  printWidth: 120,
+};
 
 describe("Quoting test", () => {
-  test("Find quotes in Hotmail messages", async () => {
+  it("Find quotes in Hotmail messages", async () => {
     const parser = new DOMParser();
     for (const { unquoted, quoted } of samples.hotmail) {
       const doc = parser.parseFromString(unquoted, "text/html");
       Quoting.convertHotmailQuotingToBlockquote1(doc);
 
-      const prettyQuoted = prettier.format(doc.body.outerHTML, PRETTIER_OPTS);
-      const prettyExpected = prettier.format(quoted, PRETTIER_OPTS);
+      const prettyQuoted = await prettier.format(
+        doc.body.outerHTML,
+        PRETTIER_OPTS
+      );
+      const prettyExpected = await prettier.format(quoted, PRETTIER_OPTS);
 
-      expect(prettyQuoted).toBe(prettyExpected);
+      assert.equal(prettyQuoted, prettyExpected);
     }
   });
-  test("Find quotes in forwarded plain-text messages", async () => {
+  it("Find quotes in forwarded plain-text messages", async () => {
     const parser = new DOMParser();
     for (const { unquoted, quoted } of samples.forward) {
       const doc = parser.parseFromString(unquoted, "text/html");
       Quoting.convertForwardedToBlockquote(doc);
 
-      const prettyQuoted = prettier.format(doc.body.outerHTML, PRETTIER_OPTS);
-      const prettyExpected = prettier.format(quoted, PRETTIER_OPTS);
+      const prettyQuoted = await prettier.format(
+        doc.body.outerHTML,
+        PRETTIER_OPTS
+      );
+      const prettyExpected = await prettier.format(quoted, PRETTIER_OPTS);
 
-      expect(prettyQuoted).toBe(prettyExpected);
+      assert.equal(prettyQuoted, prettyExpected);
     }
   });
-  test("Merge disjoint blockquotes", async () => {
+  it("Merge disjoint blockquotes", async () => {
     const parser = new DOMParser();
     for (const { unquoted, quoted } of samples.disjoint) {
       const doc = parser.parseFromString(unquoted, "text/html");
       Quoting.fusionBlockquotes(doc);
 
-      const prettyQuoted = prettier.format(doc.body.outerHTML, PRETTIER_OPTS);
-      const prettyExpected = prettier.format(quoted, PRETTIER_OPTS);
+      const prettyQuoted = await prettier.format(
+        doc.body.outerHTML,
+        PRETTIER_OPTS
+      );
+      const prettyExpected = await prettier.format(quoted, PRETTIER_OPTS);
 
-      expect(prettyQuoted).toBe(prettyExpected);
+      assert.equal(prettyQuoted, prettyExpected);
     }
   });
-  test("Normalize blockquotes using all methods", async () => {
+  it("Normalize blockquotes using all methods", async () => {
     const allSampleEmails = [].concat(
       samples.hotmail,
       samples.disjoint,
@@ -255,10 +273,13 @@ describe("Quoting test", () => {
       const doc = parser.parseFromString(unquoted, "text/html");
       Quoting.normalizeBlockquotes(doc);
 
-      const prettyQuoted = prettier.format(doc.body.outerHTML, PRETTIER_OPTS);
-      const prettyExpected = prettier.format(quoted, PRETTIER_OPTS);
+      const prettyQuoted = await prettier.format(
+        doc.body.outerHTML,
+        PRETTIER_OPTS
+      );
+      const prettyExpected = await prettier.format(quoted, PRETTIER_OPTS);
 
-      expect(prettyQuoted).toBe(prettyExpected);
+      assert.equal(prettyQuoted, prettyExpected);
     }
   });
 });

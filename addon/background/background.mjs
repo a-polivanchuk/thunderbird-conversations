@@ -52,11 +52,14 @@ class Background {
     browser.conversations.onSetConversationPreferences.addListener(() => {});
 
     // Setup the temporary API caller that stub.html uses.
-    // Do this at the end so that everything is ready before stub.js starts.
+    // Do this at the end so that everything is ready before stub.mjs starts.
     browser.conversations.onCallAPI.addListener(
-      async (apiName, apiItem, args) => {
+      async (apiName, apiItem, apiSubItem, args) => {
         if (apiName.startsWith("_")) {
           return this[apiName][apiItem](...args);
+        }
+        if (apiSubItem) {
+          return browser[apiName][apiItem][apiSubItem](...args);
         }
         return browser[apiName][apiItem](...args);
       }

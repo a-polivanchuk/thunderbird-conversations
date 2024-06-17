@@ -2,6 +2,7 @@ import globals from "globals";
 import jsdoc from "eslint-plugin-jsdoc";
 import json from "eslint-plugin-json";
 import reactRecommended from "eslint-plugin-react/configs/recommended.js";
+import imports from "eslint-plugin-import";
 import mozilla from "eslint-plugin-mozilla";
 import nounsanitized from "eslint-plugin-no-unsanitized";
 
@@ -12,12 +13,50 @@ export default [
     ignores: ["dist**", "package-lock.json"],
   },
   {
-    files: ["**/*.{js,jsx,mjs}"],
+    files: ["**/*.{js,mjs}"],
     languageOptions: {
       ecmaVersion: "latest",
     },
     linterOptions: {
       reportUnusedDisableDirectives: "error",
+    },
+  },
+  {
+    files: ["**/*.mjs", "**/*.js"],
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    plugins: { import: imports },
+    rules: {
+      "import/default": "error",
+      "import/export": "error",
+      "import/named": "error",
+      "import/namespace": "error",
+      "import/newline-after-import": "error",
+      "import/no-duplicates": "error",
+      "import/no-absolute-path": "error",
+      "import/no-named-default": "error",
+      "import/no-named-as-default": "error",
+      "import/no-named-as-default-member": "error",
+      "import/no-self-import": "error",
+      "import/no-unassigned-import": "error",
+      "import/no-unresolved": "error",
+      "import/no-useless-path-segments": "error",
+    },
+    settings: {
+      "import/extensions": [".mjs"],
+      // To work around the flat configuration not working yet in
+      // eslint-plugin-import.
+      // https://github.com/import-js/eslint-plugin-import/issues/2556
+      "import/parsers": {
+        espree: [".mjs"],
+      },
+      "import/resolver": {
+        node: true,
+      },
     },
   },
   {
@@ -30,7 +69,7 @@ export default [
     files: [
       "addon/content/modules/*.*js",
       "addon/content/stubGlobals.js",
-      "addon/content/stubWrapper.js",
+      "addon/content/stubWrapper.mjs",
       "addon/experiment-api/*.js",
     ],
     plugins: { mozilla, "no-unsanitized": nounsanitized },
@@ -44,7 +83,7 @@ export default [
     },
   },
   {
-    files: ["**/*.jsx"],
+    files: ["**/*.mjs"],
     ...reactRecommended,
     languageOptions: {
       ...reactRecommended.languageOptions,
@@ -101,15 +140,7 @@ export default [
     },
   },
   {
-    files: ["addon/tests/*.test.js*", "addon/tests/*.test.mjs*"],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
-    },
-  },
-  {
-    files: ["**/*.{js,jsx,mjs}"],
+    files: ["**/*.{js,mjs}"],
     plugins: { jsdoc },
     rules: {
       "jsdoc/check-tag-names": "error",

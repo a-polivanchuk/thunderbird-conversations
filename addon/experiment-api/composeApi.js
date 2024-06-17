@@ -4,11 +4,9 @@
 
 /* global ExtensionCommon */
 
-ChromeUtils.defineModuleGetter(
-  this,
-  "MailServices",
-  "resource:///modules/MailServices.jsm"
-);
+ChromeUtils.defineESModuleGetters(this, {
+  MailServices: "resource:///modules/MailServices.sys.mjs",
+});
 
 /**
  * @typedef nsIMsgDBHdr
@@ -101,16 +99,16 @@ var convCompose = class extends ExtensionCommon.ExtensionAPI {
                 reject(aStatus);
               },
               // nsIMsgCopyServiceListener
-              OnStartCopy() {
+              onStartCopy() {
                 console.log("onStartCopy");
               },
-              SetMessageKey() {
+              setMessageKey() {
                 console.log("setMessageKey");
               },
-              GetMessageId() {
+              getMessageId() {
                 console.log("getMessageId");
               },
-              OnStopCopy() {
+              onStopCopy() {
                 console.log("onStopCopy");
                 resolve(sendStatus);
               },
