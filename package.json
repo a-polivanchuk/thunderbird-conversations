@@ -31,9 +31,9 @@
     "eslint-plugin-json": "3.1.0",
     "eslint-plugin-mozilla": "3.7.4",
     "eslint-plugin-no-unsanitized": "4.0.2",
-    "eslint-plugin-react": "7.34.2",
+    "eslint-plugin-react": "7.34.3",
     "global-jsdom": "24.0.0",
-    "globals": "15.4.0",
+    "globals": "15.6.0",
     "html-webpack-plugin": "5.6.0",
     "jsdom": "24.1.0",
     "prettier": "3.3.2",
@@ -42,6 +42,11 @@
     "web-ext": "8.1.0",
     "webpack": "5.92.0",
     "webpack-cli": "5.1.4"
+  },
+  "overrides": {
+    "web-ext": {
+      "ws": "8.17.1"
+    }
   },
   "scripts": {
     "dev": "rm -rf ./dist-dev-html && (scripts/build-dev-html.sh --watch &) && sleep 4 && scripts/dev-html-serve.sh",
