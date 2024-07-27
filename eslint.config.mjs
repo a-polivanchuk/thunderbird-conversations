@@ -1,10 +1,11 @@
 import globals from "globals";
 import jsdoc from "eslint-plugin-jsdoc";
 import json from "eslint-plugin-json";
-import reactRecommended from "eslint-plugin-react/configs/recommended.js";
+import react from "eslint-plugin-react";
 import imports from "eslint-plugin-import";
 import mozilla from "eslint-plugin-mozilla";
 import nounsanitized from "eslint-plugin-no-unsanitized";
+import { fixupPluginRules } from "@eslint/compat";
 
 // TODO: do we still want html?
 // TODO: Mozilla plugin
@@ -29,7 +30,7 @@ export default [
         sourceType: "module",
       },
     },
-    plugins: { import: imports },
+    plugins: { import: fixupPluginRules(imports) },
     rules: {
       "import/default": "error",
       "import/export": "error",
@@ -72,7 +73,7 @@ export default [
       "addon/content/stubWrapper.mjs",
       "addon/experiment-api/*.js",
     ],
-    plugins: { mozilla, "no-unsanitized": nounsanitized },
+    plugins: { mozilla, "no-unsanitized": fixupPluginRules(nounsanitized) },
     // processor: json.processors[".json"],
     rules: mozilla.configs.recommended.rules,
     languageOptions: {
@@ -84,9 +85,8 @@ export default [
   },
   {
     files: ["**/*.mjs"],
-    ...reactRecommended,
+    ...react.configs.flat.recommended,
     languageOptions: {
-      ...reactRecommended.languageOptions,
       globals: {
         ...globals.browser,
         ...globals.es2021,
