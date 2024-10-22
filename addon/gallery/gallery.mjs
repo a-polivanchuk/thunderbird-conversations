@@ -6,10 +6,11 @@ import React from "react";
 import ReactDOMClient from "react-dom/client";
 import PropTypes from "prop-types";
 
+// eslint-disable-next-line no-shadow
 const Photo = React.forwardRef(({ index, length, name, size, src }, ref) =>
   React.createElement(
     "div",
-    { className: "photoWrap", ref: ref },
+    { className: "photoWrap", ref },
     React.createElement("img", { src }),
     React.createElement(
       "div",
@@ -99,7 +100,7 @@ class MyComponent extends React.Component {
   async output(attachments, id, scrollToPartName) {
     // Get the initial data first.
     for (const attachment of attachments) {
-      attachment.size = await browser.conversations.formatFileSize(
+      attachment.size = await browser.messengerUtilities.formatFileSize(
         attachment.size
       );
     }

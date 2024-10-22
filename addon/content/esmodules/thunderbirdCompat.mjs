@@ -7,6 +7,7 @@
 
 import { kPrefDefaults } from "../../background/prefs.mjs";
 
+// eslint-disable-next-line no-shadow
 const browser = globalThis.window?.browser ?? {};
 
 // `i18n` is a replacement for `browser.i18n`.  `getMessage` defaults
@@ -233,9 +234,6 @@ if (!browser.conversations) {
     async makeFriendlyDateAgo() {
       return "yesterday";
     },
-    async formatFileSize(size) {
-      return `${size} bars`;
-    },
     async makePlural(form, string, count) {
       return `${string} ${count}`;
     },
@@ -246,12 +244,6 @@ if (!browser.conversations) {
     async previewAttachment() {},
     async getLateAttachments() {
       return [];
-    },
-    async parseMimeLine() {
-      return [{ email: "", name: "-", fullName: "-" }];
-    },
-    async convertSnippetToPlainText() {
-      return "short snippet";
     },
     async getReplyOnTop() {
       return 1;
@@ -416,7 +408,7 @@ if (!browser.folders) {
     async getParentFolders(accountId) {
       return [
         {
-          accountId: accountId,
+          accountId,
           name: "Fake",
           path: "/Fake",
         },
@@ -658,6 +650,20 @@ if (!browser.convOpenPgp) {
   browser.convOpenPgp = {
     beforeStreamingMessage() {},
     handleMessageStreamed() {},
+  };
+}
+
+if (!browser.messengerUtilities) {
+  browser.messengerUtilities = {
+    async convertToPlainText() {
+      return "short snippet";
+    },
+    async formatFileSize(size) {
+      return `${size} bars`;
+    },
+    async parseMailboxString() {
+      return [{ email: "", name: "-" }];
+    },
   };
 }
 

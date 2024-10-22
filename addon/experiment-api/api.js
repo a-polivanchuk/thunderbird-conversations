@@ -228,9 +228,6 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
           }
           return msgHdr.folder.getUriForMsg(msgHdr);
         },
-        async formatFileSize(size) {
-          return messenger.formatFileSize(size);
-        },
         async createTab(createTabProperties) {
           const params = {
             url: createTabProperties.url,
@@ -260,7 +257,7 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
         async getLateAttachments(id, extraAttachments) {
           return new Promise((resolve, reject) => {
             const msgHdr = context.extension.messageManager.get(id);
-            lazy.MsgHdrToMimeMessage(msgHdr, null, (msgHdr, mimeMsg) => {
+            lazy.MsgHdrToMimeMessage(msgHdr, null, (_, mimeMsg) => {
               if (!mimeMsg) {
                 resolve([]);
                 return;
@@ -396,10 +393,10 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
             );
           });
           let msgUri = msgHdrGetUri(msgHdr);
-          let messenger = Cc["@mozilla.org/messenger;1"].createInstance(
+          let attachMessenger = Cc["@mozilla.org/messenger;1"].createInstance(
             Ci.nsIMessenger
           );
-          messenger.setWindow(
+          attachMessenger.setWindow(
             win,
             Cc["@mozilla.org/messenger/msgwindow;1"].createInstance(
               Ci.nsIMsgWindow
@@ -430,7 +427,7 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
             messageUriArray[i] = msgUri;
           }
 
-          messenger.saveAllAttachments(
+          attachMessenger.saveAllAttachments(
             contentTypeArray,
             urlArray,
             displayNameArray,
@@ -444,16 +441,16 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
           let msgUri = msgHdrGetUri(msgHdr);
           // Unfortunately, we still need a messenger with a msgWindow for
           // this to work.
-          let messenger = Cc["@mozilla.org/messenger;1"].createInstance(
+          let attachMessenger = Cc["@mozilla.org/messenger;1"].createInstance(
             Ci.nsIMessenger
           );
-          messenger.setWindow(
+          attachMessenger.setWindow(
             win,
             Cc["@mozilla.org/messenger/msgwindow;1"].createInstance(
               Ci.nsIMsgWindow
             )
           );
-          getAttachmentInfo(msgUri, attachment).save(messenger);
+          getAttachmentInfo(msgUri, attachment).save(attachMessenger);
         },
         async openAttachment({ winId, tabId, msgId, partName }) {
           let msgHdr = context.extension.messageManager.get(msgId);
@@ -483,23 +480,23 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
             );
           }
         },
-        async detachAttachment({ winId, tabId, msgId, partName, shouldSave }) {
+        async detachAttachment({ winId, tabId, msgId, partName }) {
           let { win } = getWinBrowserFromIds(context, winId, tabId);
           let msgHdr = context.extension.messageManager.get(msgId);
           let attachment = await findAttachment(msgHdr, partName);
           let msgUri = msgHdrGetUri(msgHdr);
           // Unfortunately, we still need a messenger with a msgWindow for
           // this to work.
-          let messenger = Cc["@mozilla.org/messenger;1"].createInstance(
+          let attachMessenger = Cc["@mozilla.org/messenger;1"].createInstance(
             Ci.nsIMessenger
           );
-          messenger.setWindow(
+          attachMessenger.setWindow(
             win,
             Cc["@mozilla.org/messenger/msgwindow;1"].createInstance(
               Ci.nsIMsgWindow
             )
           );
-          getAttachmentInfo(msgUri, attachment).detach(messenger, shouldSave);
+          getAttachmentInfo(msgUri, attachment).detach(attachMessenger, true);
         },
         async makeFriendlyDateAgo(date) {
           return lazy.makeFriendlyDateAgo(new Date(date));
@@ -667,36 +664,6 @@ var conversations = class extends ExtensionCommon.ExtensionAPI {
               bubbles: true,
             })
           );
-        },
-        /**
-         * Wraps the low-level header parser stuff.
-         *
-         * @param {string} mimeLine
-         *   A line that looks like "John &lt;john@cheese.com&gt;, Jane &lt;jane@wine.com&gt;"
-         * @returns {Array}
-         *   A list of { email, name, fullName } objects
-         */
-        parseMimeLine(mimeLine) {
-          if (mimeLine == null) {
-            console.warn("Empty aMimeLine?!!");
-            return [{ email: "", name: "-", fullName: "-" }];
-          }
-          let addresses =
-            lazy.MailServices.headerParser.parseDecodedHeader(mimeLine);
-          if (addresses.length) {
-            return addresses.map((addr) => {
-              return {
-                email: addr.email,
-                name: addr.name,
-                fullName: addr.toString(),
-              };
-            });
-          }
-          return [{ email: "", name: "-", fullName: "-" }];
-        },
-        convertSnippetToPlainText(accountId, path, text) {
-          let msgFolder = context.extension.folderManager.get(accountId, path);
-          return msgFolder.convertMsgSnippetToPlainText(text);
         },
         async getAccountOfflineDownload(accountId) {
           let account = lazy.MailServices.accounts.getAccount(accountId);
@@ -912,16 +879,16 @@ async function getMimeMessage(msgHdr, partName = "") {
     }
 
     // Limit mimeMsg and attachments to the requested <subMessagePart>.
-    let findSubPart = (parts, partName) => {
-      let match = parts.find((a) => partName.startsWith(a.partName));
+    let findSubPart = (parts, subPartName) => {
+      let match = parts.find((a) => subPartName.startsWith(a.partName));
       if (!match) {
         throw new ExtensionError(
-          `Unexpected Error: Part ${partName} not found.`
+          `Unexpected Error: Part ${subPartName} not found.`
         );
       }
-      return match.partName == partName
+      return match.partName == subPartName
         ? match
-        : findSubPart(match.parts, partName);
+        : findSubPart(match.parts, subPartName);
     };
     let subMimeMsg = findSubPart(mimeMsg.parts, subMsgPartName);
 
@@ -938,9 +905,9 @@ async function getMimeMessage(msgHdr, partName = "") {
     lazy.MsgHdrToMimeMessage(
       msgHdr,
       null,
-      (_msgHdr, mimeMsg) => {
-        mimeMsg.attachments = mimeMsg.allInlineAttachments;
-        resolve(mimeMsg);
+      (_msgHdr, newMimeMsg) => {
+        newMimeMsg.attachments = newMimeMsg.allInlineAttachments;
+        resolve(newMimeMsg);
       },
       true,
       { examineEncryptedParts: true }
